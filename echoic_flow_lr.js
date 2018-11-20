@@ -255,7 +255,7 @@ function Exit() {
 
 function GetMotorCommand(velocity) {
 
-	var command = Math.round(2.602*(Math.sqrt(0.712-velocity)-0.846)*1000)/1000
+	var command = Math.round(2.644*(Math.sqrt(0.749-velocity)-0.868)*1000)/1000
 
 	if (command <= 0) {
 		return 0.01;
