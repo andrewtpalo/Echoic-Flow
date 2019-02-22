@@ -1,3 +1,4 @@
+
 var plotly = require('plotly')('palo.14','TH5SMw69JFkbte5gHzy4');
 var math = require('mathjs');
 var nsamples = 100;

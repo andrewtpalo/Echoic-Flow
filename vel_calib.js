@@ -13,7 +13,10 @@ var stage_flag = 0;
 ////////////////////////////////////////////////////////////////////////////////////
 
 var filename = "recent.txt"
-var mtrcomm = 0.2;
+=======
+var filename = "recent.txt"
+
+var mtrcomm = 0.52;
 var start_height = 2.3;
 var stop_height = 0.5;
 
@@ -74,7 +77,7 @@ function CheckDrone(altitude) {
 
 				if(altitude <= start_height) {
 					client.up(0.3);
-					client.front(0.05);
+					//client.front(0.05);
 				} else {
 					client.stop();
 					client.after(2000, function () {

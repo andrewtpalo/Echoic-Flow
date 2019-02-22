@@ -1,7 +1,7 @@
 var arDrone = require('ar-drone');
 var fs = require('fs');
 var keypress = require('keypress')
-var regression = require('regression');
+var Polyfit = require('polyfit');
 var client = arDrone.createClient();
 var r = [];
 var t = [];
@@ -14,7 +14,6 @@ var cmnd = [];
 var marker = [];
 var header = [];
 var file_return = [];
-var poly = [];
 var stage = 'up';
 var timer = 'unset';
 
@@ -25,7 +24,7 @@ var start_height = 2.3;
 var stop_height = 0.4;
 var start_point = 30;
 var v0 = -0.5;
-var tau_dot = 0.05;
+var tau_dot = 0.5;
 var buf_size = 19;
 var order = 2;
 
@@ -154,12 +153,9 @@ function FillBuffer(current_range,current_time) {
 		var buf_first = r.length-buf_size;
 		var r_buffed = r.slice(buf_first,cur);
 		var t_buffed = t.slice(buf_first,cur);
-		var data = [];
-		for(var i=0; i<r_buffed.length; i++){
-			data[i] = [t_buffed[i],r_buffed[i]];
-		}
-		poly = regression.polynomial(data, {order:order});
-		var current_filt = poly.equation[0]*Math.pow(current_time,2) + poly.equation[1] * current_time + poly.equation[2];
+		var poly = new Polyfit(t_buffed,r_buffed);
+		var curve = poly.getPolynomial(order);
+		var current_filt = curve(current_time);
 		r_filt.push(current_filt);
 		marker.push(1);
 	} else {
@@ -193,13 +189,9 @@ function EchoicFlow(current_range,current_time) {
 	var buf_first = r.length-buf_size;
 	var r_buffed = r.slice(buf_first,cur);
 	var t_buffed = t.slice(buf_first,cur);
-	var data = [];
-	for(var i=0; i<r_buffed.length; i++){
-		data[i] = [t_buffed[i],r_buffed[i]];
-	}
-	console.log(data);
-	poly = regression.polynomial(data, {order:order});
-	var current_filt = poly.equation[0]*Math.pow(current_time,2) + poly.equation[1] * current_time + poly.equation[2];
+	var poly = new Polyfit(t_buffed,r_buffed);
+	var curve = poly.getPolynomial(order);
+	var current_filt = curve(current_time);
 	r_filt.push(current_filt);
 
 	//compute current velocity
@@ -280,3 +272,7 @@ function ComputeTau(r,v) {
 	}
 	return r/v;
 }
+
+
+
+
