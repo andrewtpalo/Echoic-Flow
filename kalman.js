@@ -1,6 +1,9 @@
 
 var plotly = require('plotly')('palo.14','TH5SMw69JFkbte5gHzy4');
 var math = require('mathjs');
+var methods = {};
+
+
 var t = [];
 
 var xtrue = [];
@@ -36,7 +39,7 @@ var xkbufplotV = [];
 var instantV = [];
 instantV.push(0.0);
 
-var filtering = function(nsamples, vtrue, xinitial, dt){
+methods.filtering = function(nsamples, vtrue, xinitial, dt){
 	for(i=0; i<nsamples; i++){
 		z = xtrue[i+1] + sigma_meas*Math.random();
 		z_buffer.push(z);
@@ -56,7 +59,7 @@ var filtering = function(nsamples, vtrue, xinitial, dt){
 	}
 }
 
-var displayChoice = function(display){
+methods.displayChoice = function(display){
 	switch(display){
 			
 		//PLOT
@@ -141,3 +144,5 @@ var displayChoice = function(display){
 			break;
 	}
 }
+
+module.exports = methods;

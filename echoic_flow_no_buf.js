@@ -1,7 +1,7 @@
 var arDrone = require('ar-drone');
 var fs = require('fs');
-var keypress = require('keypress')
-
+var keypress = require('keypress');
+var kalman = require('./kalman');
 
 var client = arDrone.createClient();
 var r = [];
