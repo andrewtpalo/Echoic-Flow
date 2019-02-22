@@ -41,60 +41,60 @@ var order = 2;
 //Loop
 client.takeoff(function() {
 
-t_start = Date.now()/1000;
+	t_start = Date.now()/1000;
 
-// listen for the "keypress" event 
-keypress(process.stdin);
+	// listen for the "keypress" event 
+	keypress(process.stdin);
 
-process.stdin.on('keypress', function (ch, key) {
+	process.stdin.on('keypress', function (ch, key) {
 
-  //land the drone
-  if (ch == 'l'){
-    client.removeAllListeners('navdata')
-    console.log('landing...');
-    client.land();
-  }
-
-  if (key && key.ctrl && key.name == 'l') {
-    Write();
-  }
-});
-
-process.stdin.setRawMode(true);
-process.stdin.resume();
-
-// start listening for altitude information
-client.on('navdata', function (data) {
-
-	if(data.demo.altitude) {
-
-		current_range = Math.round((data.demo.altitude-stop_height)*1000)/1000;
-		current_time = Date.now()/1000-t_start;
-
-		switch(stage) {
-
-			case 'up':
-				FlyToHeight(current_range,current_time);
-				break;
-			case 'pause':
-				Pause(current_range,current_time);
-				break;
-			case 'dec':
-				StartDecent(current_range,current_time);
-				break;
-			case 'buf':
-				FillBuffer(current_range,current_time);
-				break;
-			case 'ef':
-				EchoicFlow(current_range,current_time);
-				break;
-			case 'stop':
-				LandSave(current_range,current_time);
-				break;
+		//land the drone
+		if (ch == 'l'){
+			client.removeAllListeners('navdata')
+			console.log('landing...');
+			client.land();
 		}
-	}
 
-});
+		if (key && key.ctrl && key.name == 'l') {
+			Write();
+		}
+	});
+
+	process.stdin.setRawMode(true);
+	process.stdin.resume();
+
+	// start listening for altitude information
+	client.on('navdata', function (data) {
+
+		if(data.demo.altitude) {
+
+			current_range = Math.round((data.demo.altitude-stop_height)*1000)/1000;
+			current_time = Date.now()/1000-t_start;
+
+			switch(stage) {
+
+				case 'up':
+					FlyToHeight(current_range,current_time);
+					break;
+				case 'pause':
+					Pause(current_range,current_time);
+					break;
+				case 'dec':
+					StartDecent(current_range,current_time);
+					break;
+				case 'buf':
+					FillBuffer(current_range,current_time);
+					break;
+				case 'ef':
+					EchoicFlow(current_range,current_time);
+					break;
+				case 'stop':
+					LandSave(current_range,current_time);
+					break;
+			}
+		}
+
+	});
 
 });
 
