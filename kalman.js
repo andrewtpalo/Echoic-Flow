@@ -28,7 +28,6 @@ var m = math.matrix([1, 0]);
 var mt = math.matrix([[1],[0]]);
 
 var xk_buffer = xk_prev;
-var z_buffer =[];
 var z;
 var p1;
 var s;
@@ -41,6 +40,7 @@ instantV.push(0.0);
 
 methods.filtering = function(nsamples, vtrue, xinitial, dt){
 	for(i=0; i<nsamples; i++){
+		var z_buffer =[];
 		z = xtrue[i+1] + sigma_meas*Math.random();
 		z_buffer.push(z);
 		instantV.push((z-z_buffer[i-1])/dt);
