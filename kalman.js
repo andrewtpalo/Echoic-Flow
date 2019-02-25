@@ -3,9 +3,7 @@ var plotly = require('plotly')('palo.14','TH5SMw69JFkbte5gHzy4');
 var math = require('mathjs');
 var methods = {};
 
-
 var t = [];
-
 var xtrue = [];
 var i;
 var velTrue = [];
@@ -15,48 +13,46 @@ for(i=0;i<nsamples;i++){
 	velTrue.push(vtrue);
 }
 
-var xk_prev = math.matrix([[0],[vtrue*0.5]]);
-var xk = [];
-var phi = math.matrix([[1, dt], [0, 1]]);
 
-var sigma_model = 1;
-var sigma_meas = 1;
-var p = math.matrix([[sigma_model*sigma_model, 0], [0, sigma_model*sigma_model]]);
-var q = math.matrix([[0,0],[0,0]]);
-var r = sigma_meas*sigma_meas;
-var m = math.matrix([1, 0]);
-var mt = math.matrix([[1],[0]]);
 
-var xk_buffer = xk_prev;
-var z;
-var p1;
-var s;
-var k;
-var test;
-var xkbufplot = [];
-var xkbufplotV = [];
-var instantV = [];
-instantV.push(0.0);
 
-methods.filtering = function(nsamples, vtrue, xinitial, dt){
-	for(i=0; i<nsamples; i++){
-		var z_buffer =[];
-		z = xtrue[i+1] + sigma_meas*Math.random();
-		z_buffer.push(z);
-		instantV.push((z-z_buffer[i-1])/dt);
-		p1 = math.add(math.multiply(math.multiply(phi, p), math.transpose(phi)),q); //2x2
-		s = math.add(math.multiply(math.multiply(m, p1), mt),r); //1x1
-		k = math.multiply(math.multiply(p1, mt),math.inv(s)); //2x1
-		k = math.matrix([[math.subset(k, math.index(0))],[math.subset(k, math.index(1))]]);	;
-		p = math.subtract(p1,math.multiply(math.multiply(k, math.transpose(mt)), p1)); //2x2
-		test = math.multiply(k, math.subtract(z, math.multiply(math.multiply(m, phi), xk_prev)));
-		test = math.matrix([[math.subset(test, math.index(0))],[math.subset(test, math.index(1))]]);	
-		xk = math.add(math.multiply(phi, xk_prev), test);
-		xk_buffer = math.concat(xk_buffer, xk);
-		xkbufplot.push(math.subset(xk_buffer, math.index(0,i)));
-		xkbufplotV.push(math.subset(xk_buffer, math.index(1,i)));
-		xk_prev = xk;
-	}
+
+
+methods.filtering = function(current_range, xinitial, z_buffer, xkbufplot, xkbufplotV, instantV, xk, xk_buffer, xk_prev){
+	//initialize all kalman constants
+	var dt = 1/15;
+	var phi = math.matrix([[1, dt], [0, 1]]);
+	var sigma_model = 1;
+	var sigma_meas = 1;
+	var p = math.matrix([[sigma_model*sigma_model, 0], [0, sigma_model*sigma_model]]);
+	var q = math.matrix([[0,0],[0,0]]);
+	var r = sigma_meas*sigma_meas;
+	var m = math.matrix([1, 0]);
+	var mt = math.matrix([[1],[0]]);
+
+	//initialize all kalman vars
+	xk_buffer = xk_prev;
+	var z;
+	var p1;
+	var s;
+	var k;
+	var test;
+
+	z = xtrue[i+1] + sigma_meas*Math.random();
+	z_buffer.push(z);
+	instantV.push((z-z_buffer[i-1])/dt);
+	p1 = math.add(math.multiply(math.multiply(phi, p), math.transpose(phi)),q); //2x2
+	s = math.add(math.multiply(math.multiply(m, p1), mt),r); //1x1
+	k = math.multiply(math.multiply(p1, mt),math.inv(s)); //2x1
+	k = math.matrix([[math.subset(k, math.index(0))],[math.subset(k, math.index(1))]]);	;
+	p = math.subtract(p1,math.multiply(math.multiply(k, math.transpose(mt)), p1)); //2x2
+	test = math.multiply(k, math.subtract(z, math.multiply(math.multiply(m, phi), xk_prev)));
+	test = math.matrix([[math.subset(test, math.index(0))],[math.subset(test, math.index(1))]]);	
+	xk = math.add(math.multiply(phi, xk_prev), test);
+	xk_buffer = math.concat(xk_buffer, xk);
+	xkbufplot.push(math.subset(xk_buffer, math.index(0,i)));
+	xkbufplotV.push(math.subset(xk_buffer, math.index(1,i)));
+	xk_prev = xk;
 }
 
 methods.displayChoice = function(display){
