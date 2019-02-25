@@ -2,6 +2,7 @@ var arDrone = require('ar-drone');
 var fs = require('fs');
 var keypress = require('keypress');
 var Polyfit = require('polyfit');
+var math = require('mathjs');
 var kalman = require('./kalman');
 
 var client = arDrone.createClient();
@@ -18,6 +19,8 @@ var header = [];
 var file_return = [];
 var stage = 'up';
 var timer = 'unset';
+var i = 0;
+
 
 //Parameters//
 
@@ -29,6 +32,13 @@ var v0 = -0.5;
 var tau_dot = 0.5;
 var buf_size = 19;
 var order = 2;
+
+//kalman filters
+var instantV = [];
+var xk_prev = math.matrix([[start_height],[v0]]);
+var xk = [];
+var xk_buffer = xk_prev;
+
 
 // Velocity Equation //
 
@@ -155,20 +165,25 @@ function FillBuffer(current_range,current_time) {
 		var buf_first = r.length-buf_size;
 		var r_buffed = r.slice(buf_first,cur);
 		var t_buffed = t.slice(buf_first,cur);
-		var poly = new Polyfit(t_buffed,r_buffed);
-		var curve = poly.getPolynomial(order);
-		var current_filt = curve(current_time);
-		r_filt.push(current_filt);
+		//var poly = new Polyfit(t_buffed,r_buffed);
+		//var curve = poly.getPolynomial(order);
+		//var current_filt = curve(current_time);
+		xk_buffer = kalman.filtering(current_range, xk, xk_buffer, xk_prev);
+		xk_prev = math.matrix([[math.subset(xk_buffer, math.index(0,i))],[math.subset(xk_buffer, math.index(1,i))]]);
+		r_filt.push(math.subset(xk_buffer, math.index(0,i)));
+		v.push(math.subset(xk_buffer, math.index(1,i)));
 		marker.push(1);
+		i++;
 	} else {
 		r_filt.push(current_range);
 		marker.push(0);
+		v.push(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]));
 	}
 
 	//save the rest of the data
 	
-	v.push(ComputeVelocity(r[prev],r[cur],t[prev],t[cur]));
-	tau.push(ComputeTau(r[cur],v[cur]));
+	
+	tau.push(ComputeTau(r_filt[cur],v[cur]));
 	a_need.push(0.0);
 	v_need.push(0.0);
 	cmnd.push(GetMotorCommand(v0));
@@ -191,13 +206,14 @@ function EchoicFlow(current_range,current_time) {
 	var buf_first = r.length-buf_size;
 	var r_buffed = r.slice(buf_first,cur);
 	var t_buffed = t.slice(buf_first,cur);
-	var poly = new Polyfit(t_buffed,r_buffed);
-	var curve = poly.getPolynomial(order);
-	var current_filt = curve(current_time);
-	r_filt.push(current_filt);
+	// var poly = new Polyfit(t_buffed,r_buffed);
+	// var curve = poly.getPolynomial(order);
+	// var current_filt = curve(current_time);
+	// r_filt.push(current_filt);
 
-	//compute current velocity
-	v.push(ComputeVelocity(r_filt[prev],r_filt[cur],t[prev],t[cur]));
+	xk_buffer = kalman.filtering(current_range, xk, xk_buffer, xk_prev);
+	xk_prev = math.matrix([[math.subset(xk_buffer, math.index(0,i))],[math.subset(xk_buffer, math.index(1,i))]]);
+	v.push(math.subset(xk_buffer, math.index(1,i)));
 
 	//compute current tau
 	tau.push(ComputeTau(r_filt[cur],v[cur]));
@@ -214,7 +230,7 @@ function EchoicFlow(current_range,current_time) {
 
 	//save the marker
 	marker.push(1);
-
+	i++;
 	//check if desitnation is reached
 	if(current_range <= 0)
 	{

@@ -3,22 +3,11 @@ var plotly = require('plotly')('palo.14','TH5SMw69JFkbte5gHzy4');
 var math = require('mathjs');
 var methods = {};
 
-var t = [];
-var xtrue = [];
-var i;
-var velTrue = [];
-for(i=0;i<nsamples;i++){
-	t.push(dt*i);
-	xtrue.push(xinitial+vtrue*t[i]);
-	velTrue.push(vtrue);
-}
 
 
 
 
-
-
-methods.filtering = function(current_range, xinitial, z_buffer, xkbufplot, xkbufplotV, instantV, xk, xk_buffer, xk_prev){
+methods.filtering = function(current_range, xk, xk_buffer, xk_prev){
 	//initialize all kalman constants
 	var dt = 1/15;
 	var phi = math.matrix([[1, dt], [0, 1]]);
@@ -31,16 +20,13 @@ methods.filtering = function(current_range, xinitial, z_buffer, xkbufplot, xkbuf
 	var mt = math.matrix([[1],[0]]);
 
 	//initialize all kalman vars
-	xk_buffer = xk_prev;
+
 	var z;
 	var p1;
 	var s;
 	var k;
 	var test;
-
-	z = xtrue[i+1] + sigma_meas*Math.random();
-	z_buffer.push(z);
-	instantV.push((z-z_buffer[i-1])/dt);
+  z = current_range;
 	p1 = math.add(math.multiply(math.multiply(phi, p), math.transpose(phi)),q); //2x2
 	s = math.add(math.multiply(math.multiply(m, p1), mt),r); //1x1
 	k = math.multiply(math.multiply(p1, mt),math.inv(s)); //2x1
@@ -50,9 +36,8 @@ methods.filtering = function(current_range, xinitial, z_buffer, xkbufplot, xkbuf
 	test = math.matrix([[math.subset(test, math.index(0))],[math.subset(test, math.index(1))]]);	
 	xk = math.add(math.multiply(phi, xk_prev), test);
 	xk_buffer = math.concat(xk_buffer, xk);
-	xkbufplot.push(math.subset(xk_buffer, math.index(0,i)));
-	xkbufplotV.push(math.subset(xk_buffer, math.index(1,i)));
-	xk_prev = xk;
+	console.log('hello');
+	return xk_buffer;
 }
 
 methods.displayChoice = function(display){
